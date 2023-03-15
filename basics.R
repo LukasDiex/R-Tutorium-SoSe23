@@ -253,15 +253,6 @@ summary(gender)
 
 
 
-c(1,2,3)    # combine objects into a vector
-
-
-mymatrix    # prints the object
-
-which(a>=4) # returns indices in an object which satisfy a given condition
-
-
-
 
 
 

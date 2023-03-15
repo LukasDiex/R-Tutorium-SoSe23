@@ -13,7 +13,7 @@
 # The one you will use the most is the one showing your "script". Especially
 # if you are not used to coding in R, you will use this one to write your
 # code. The script saves your code and automically appears if you start R the
-# next time. Without explecitely forcing R to, no code will be run when using
+# next time. Without explicitly forcing R to, no code will be run when using
 # the script.
 # The "Console" actually runs your code. If you want to run the code you wrote
 # in the script, you copy it into the console, or push the "strg/cmd"+"enter"
@@ -22,13 +22,18 @@
 # session. If you close RStudio, your code will be gone. 
 # If there are any errors in your code, the console will stop and "give you a
 # hint" on where to look and how to fix the error.
-# The "Environment" gives an overview of the datasets, variables, lists, or 
+# The "Environment" gives an overview of the data sets, variables, lists, or 
 # whatever you are loading into R. You will get a clue in the following
 # examples. Lastly, there is some kind of explorer. It shows you all the files
 # that are currently in your project folder. Furthermore, you can switch to 
 # the "Help" tab. Being able to read the help tab will make your life easier,
 # when working with new packages. 
 
+# One last thing before we start coding: always document your code. most of the 
+# time you will work on your R-projects in groups. In order for your colleagues
+# to understand what you did, it is crucial to leave some comments on what the
+# code line is doing. Therefore, using "#" in front of your notes tells R that
+# whatever is written after a # is not code to be run. 
 # let's start with some easy examples
 ## cheap calculator
 1+1
@@ -54,6 +59,10 @@ d <- c/b
 e <- 5*                     8
 f <- 40 /
   5
+# you can also change different operations in on line
+1+1; 2*2
+a;b
+
 # the modulo operator "%%": 
 13%%6
 # this operator returns the remainder of the division of 2 numbers
@@ -86,6 +95,11 @@ exp(log(25))
 # if you don't know what your function does, just ask R, it will automatically 
 # redirect you to the respective help page in the help tab
 ?exp
+# functions can also be used with "pipes". these are not of base R, but need 
+# the dplyr package. we will look at the package later. 
+5%>%exp
+# the %>%-operator is the pipe that basically passes the left hand side of the 
+# operator to the first argument of the right hand side operator
 
 ## Vectors
 # you can define "a" as vector of numbers
@@ -93,6 +107,183 @@ a <- c(1,2,3,4,5)
 b <- c(1:5)
 # you can also combine functions and vectors
 c <- c(exp(1),exp(2),exp(3),exp(4),exp(5))
+
+## TASK
+# solve x^2 + 5*x + 6 = 0 
+# Tip: you will need two lines (+/-)
+# use pq-formula
+# the function for the square root is called sqrt()
+# solution starts at line 140
+p <- 6 
+q <- 5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Solution
+-p/2 + sqrt( (p/2)^2 - q ) 
+-p/2 - ( (p/2)^2 - q ) ^ (1/2)
+
+################################################################################
+
+## Data types
+# R has a wide variety of data types including scalars, vectors (numerical, 
+# character, logical), matrices, data frames, and lists.
+
+## Vectors
+a <- c(1,2,5.3,6,-2,4) # numeric vector
+b <- c("one","two","three") # character vector
+c <- c(TRUE,TRUE,TRUE,FALSE,TRUE,FALSE) #logical vector
+d <- c(1,2,7) #integer vector, same as d <- c(1L,2L,7L)
+
+# Refer to elements of a vector using subscripts.
+a[c(2,4)] # 2nd and 4th elements of vector
+a[c(2:4)] # 2nd until the 4th elements of vector
+
+## Matrices
+# All columns in a matrix must have the same mode(numeric, character, etc.) and
+# the same length. 
+#The general format is:
+
+# mymatrix <- matrix(vector, nrow=r, ncol=c, byrow=FALSE, 
+#                    dimnames=list(char_vector_rownames, char_vector_colnames))
+
+# byrow=TRUE indicates that the matrix should be filled by rows. byrow=FALSE 
+# indicates that the matrix should be filled by columns (the default). dimnames
+# provides optional labels for the  columns and rows.
+# generates 5 x 4 numeric matrix 
+y <- matrix(1:20, nrow=5, ncol=4)
+# another example
+cells <- c(1,26,24,68)
+rnames <- c("R1", "R2")
+cnames <- c("C1", "C2") 
+mymatrix <- matrix(cells, nrow=2, ncol=2, byrow=TRUE, dimnames=list(rnames, 
+                                                                    cnames))
+mymatrix
+# Identify rows, columns or elements using subscripts.
+y[,4] # 4th column of matrix
+y[3,] # 3rd row of matrix 
+y[2:4,1:3] # rows 2,3,4 of columns 1,2,3
+
+## Arrays
+# Arrays are similar to matrices but can have more than two dimensions. 
+?array
+
+## Data Frames
+# A data frame is more general than a matrix, in that different columns can 
+# have different modes (numeric, character, factor, etc.).
+d <- c(1,2,3,4)
+e <- c("red", "white", "red", NA)
+f <- c(TRUE,TRUE,TRUE,FALSE)
+# build data frame (coerce to data frame by as.data.frame)
+myframe <- data.frame(d,e,f)                
+myframe
+names(myframe) <- c("ID","Color","Passed")  # variable names
+myframe
+#There are a variety of ways to identify the elements of a data frame 
+# columns 1 to 2 of the data frame
+myframe[,1:2]               
+# columns ID and Age from data frame
+myframe[,c("ID","Color")]  
+# variable x1 in the data frame
+myframe$ID       
+# 3rd element of variable x1 in the data frame
+myframe$ID[3]              
+
+## Lists
+# An ordered collection of objects (components). A list allows you to gather a 
+# variety of (possibly unrelated) objects under one name.
+# objects in a list can be of different length (e.g. a list of data frames with
+# varying dimensions)
+# example of a list with 4 components - a string, a numeric vector, a matrix, 
+# and a scaler 
+mylist <- list(name="bestlist", numbers=a, matrix=y, age=5)
+mylist
+# example of a list containing two lists:
+# v <- c(list1,list2)
+# Identify elements of a list using the [[]] convention.
+mylist[[2]] # 2nd component of the list
+mylist[["numbers"]] # component named mynumbers in list
+# lists names of all elements in a list
+names(mylist)
+# we can also access multiple items of a list using single brackets 
+mylist[c(1:2)]
+
+## Factors
+# Tell R that a variable is nominal by making it a factor. The factor stores 
+# the nominal values as a vector of integers in the range [ 1... k ] (where k 
+# is the number of unique values in the nominal variable), and an internal 
+# vector of character strings (the original values) mapped to these integers.
+
+# example
+# variable gender with 20 "male" entries and 30 "female" entries 
+# (the rep command replicates a given argument a given number of times)
+# entries are saved as characters
+gender <- c(rep("male",20), rep("female", 30)) 
+gender
+class(gender)
+summary(gender)
+# transform characters into factors
+gender <- factor(gender) 
+gender
+class(gender)
+# stores gender as 30 1s and 20 2s and associates
+# 1=female, 2=male internally (alphabetically)
+# R now treats gender as a nominal variable 
+summary(gender)
+# R will treat factors as nominal variables in statistical procedures and 
+# graphical analyses. 
+
+
+
+c(1,2,3)    # combine objects into a vector
+
+
+mymatrix    # prints the object
+
+which(a>=4) # returns indices in an object which satisfy a given condition
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

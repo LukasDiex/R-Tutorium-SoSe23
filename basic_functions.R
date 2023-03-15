@@ -175,6 +175,93 @@ min(x)
 #maximum
 max(x)	        
 
+################################################################################
+
+## if you need a dice, create one
+# create a object "dice" that has values 1, 2, 3, 4, 5, 6 (a vector)
+dice <- 1:6  
+#substract 1 from each element
+dice-1    
+#divide each element by 2
+dice/2    
+#multiplicate each row 
+dice*dice   
+#inner matrix multiplication
+dice%*%dice   
+#outer matrix multiplication
+dice%o%dice   
+
+################################################################################
+
+## if else statements
+# if
+if() {}
+# else
+else() {}
+# else if
+else if() {}
+# example
+if(9 < 10) {print('This happens')}
+if(9 > 10) {print('This does not happen')}
+# a simple game of dice:
+player_1 <- sample(1:6, 1)
+player_2 <- sample(1:6, 1)
+
+if(player_1 > player_2) {
+  
+  print('player_1 wins')
+  
+} else if (player_1 < player_2) {
+  
+  print('player_2 wins')
+  
+} else {
+  
+  print('Everybody wins, yeih!')
+  
+}
+# recall the example of the pq-formula from the "basics.R"-file
+p <- 6
+q <- 5
+
+under_square_root <- (p/2)^2 - q
+
+if(under_square_root > 0) {
+  
+  print( - p/2 + sqrt(under_square_root))
+  print( - p/2 - sqrt(under_square_root))
+  
+} else if (under_square_root == 0) {
+  
+  print(-p/2)
+  
+} else {
+  
+  print('No real solution for this one..')
+  
+}
+
+################################################################################
+
+## Loops
+# In R you have multiple options when repeating calculations: vectorized 
+# operations, loops and apply functions. The most commonly used loop is the 
+# "for" loop. It is used to apply the same function calls to a collection of 
+# objects. In R, for loops take an iterator variable and assign it successive 
+# values from a sequence or vector. For loops are most commonly used for 
+# iterating over the elements of an object (list, vector, etc.)
+
+for(i in 1:10) {
+  print(i)
+}
+
+#Another example:
+
+x <- c("a", "b", "c", "d")
+for(j in seq_along(x)){
+  print(x[j])
+}
+
 
 ################################################################################
 

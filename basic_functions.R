@@ -206,18 +206,22 @@ if(9 > 10) {print('This does not happen')}
 # a simple game of dice:
 player_1 <- sample(1:6, 1)
 player_2 <- sample(1:6, 1)
-
-if(player_1 > player_2) {
+# thik of this in verbal terms. If player1 rolled a higher number than player2,
+# then write: player1 wins.
+if(player_1 > player_2) {           
   
   print('player_1 wins')
-  
+# However, if player2 rolled the higher number, then write player2 wins.  
 } else if (player_1 < player_2) {
   
   print('player_2 wins')
-  
+# Otherwise, they must have rolled the same number, thats the only possible
+# outcome left. In this last case left write that both win.
+# note that it is important that the "else" statement comes at the same line
+# as the closing bracket } of the if part
 } else {
   
-  print('Everybody wins, yeih!')
+  print('everybody wins')
   
 }
 # recall the example of the pq-formula from the "basics.R"-file
@@ -245,25 +249,184 @@ if(under_square_root > 0) {
 
 ## Loops
 # In R you have multiple options when repeating calculations: vectorized 
-# operations, loops and apply functions. The most commonly used loop is the 
-# "for" loop. It is used to apply the same function calls to a collection of 
-# objects. In R, for loops take an iterator variable and assign it successive 
-# values from a sequence or vector. For loops are most commonly used for 
-# iterating over the elements of an object (list, vector, etc.)
+# operations, loops and apply functions.
+# while loops:
+# these loops are similar to the if statement. it executes the code inside if
+# the condition is true. However, the while loop executes the code over and 
+# over again, as long as the condition is true.
 
-for(i in 1:10) {
-  print(i)
+while(condition) {  # if this condition holds
+  expr              # what do we want the while loop to do on every iteration
 }
 
-#Another example:
-
-x <- c("a", "b", "c", "d")
-for(j in seq_along(x)){
-  print(x[j])
+# example:
+count <- 1
+while(count <= 7) {
+  print(paste("count is set to", count))
+  count <- count +1   
 }
+# note that we have two expressions in this example. one tells the loop what to
+# print. and the other increments the count variable to prevent the loop from
+# running endlessly.
+count
 
+# break statement:
+# the break statement simply breaks out of the while. in this example we want
+# the break statement to activate as soon as count reaches a level divisible
+# by 5
+count <- 1
+while(count <=7) {
+  if(count %% 5 ==0){
+    break
+  }
+  print(paste("count is set to", count))
+  count <- count+1
+}
+count
+
+# for loops:
+# for each variable in a sequence, run the following expression
+for(var in seq) {
+  expr
+}
+# example
+cities <- c("Turin", "Barcelona", "London", "Paris", "Havanna",
+            "Wien", "Mexico City", "Hongkong", "Hamburg")
+cities
+
+for(city in cities){
+  print(city)
+}
+city
+# note that the for loop automatically identifies "cities" as a sequence, 
+# containing different variables. Each city is a value of this sequence. 
+# Here, we told R to print every variable of the sequence separately.
+# the for loop also works with lists:
+cities <- list("Turin", "Barcelona", "London", "Paris", "Havanna",
+            "Wien", "Mexiko City", "Hongkong", "Hamburg")
+cities
+
+for(city in cities){
+  print(city)
+}
+city
+
+# break-statement also works with foor loops
+for(city in cities){
+  if (nchar(city) == 6) {
+    break
+  }
+  print(city)
+}
+# the break statement stops the loop as soon as it encounters a name with
+# character length being equal to 6. In this case London, which is no longer
+# printed out.
+
+# you can also use the "next" statement
+for(city in cities){
+  if(nchar(city) == 6){
+    next
+  }
+  print(city)
+}
+# the next statement skips those entries violating our if condition and
+# proceeds to the next iteration
+
+## advanced looping
+# additionally to print out the city name, we also want to have information on
+# the variables' position inside the vector. Therefore, we need to adapt the
+# "looping index". This index is a counter R uses behind the scenes to know 
+# which element to select on every iteration. 
+# Now instead of iterating over the cities, we will manually create the index.
+cities <- list("Turin", "Barcelona", "London", "Paris", "Havanna",
+               "Wien", "Mexiko City", "Hongkong", "Hamburg")
+cities
+
+for(i in 1:length(cities)) {
+  print(cities[i])
+}
 
 ################################################################################
+
+## the apply family
+# lapply
+vienna <- list(pop = 1982442, districts = c("Innere Stadt, Leopoldstadt",
+                                         "Landstraße", "Wieden", "Margareten",
+                                         "Mariahilf", "Neubau", "Josefstadt",
+                                         "Alsergrund", "Favoriten", "Simmering",
+                                         "Meidling", "Hietzing", "Penzing",
+                                         "Rudolfsheim-Fuenfhaus", "Ottakring",
+                                         "Hernals", "Waehring", "Doebling",
+                                         "Brigittenau", "Floridsdorf", 
+                                         "Donaustadt", "Liesing"),
+            capital = TRUE)
+# now we want to get information of the different variables included in the
+# list. This could be done by a for loop
+for(info in vienna) {
+  print(class(info))
+}
+# or you just use the lapply function
+lapply(vienna, class)
+# lapply iterated over the whole list and for each entry in the list, it
+# applied the class function
+# now, if you want to find out the length of characters of a city name, you can
+# again use a for loop
+num_chars <- c()
+for(i in 1:length(cities)) {
+  num_chars[i] <- nchar(cities[i])
+}
+num_chars
+# or you simply use the lapply function
+lapply(cities, nchar)
+# create your own function and apply it with lapply
+oil_prices <- list(2.37, 2.49, 2.18, 2.22, 2.47, 2.32)
+multiply <- function(x, factor) {
+  x*factor
+}
+result <- lapply(oil_prices, multiply, factor =3)
+result
+unlist(result)
+str(result)
+
+# sapply
+# sapply is short for simplified apply function. look at the output in your
+# console compared to the lapply function
+# what happens in the background is that sapply calls on lapply but also uses
+# "simplify to array"-function
+cities <- list("Turin", "Barcelona", "London", "Paris", "Havanna",
+               "Wien", "Mexiko City", "Hongkong", "Hamburg")
+sapply(cities, nchar)
+# another example
+first_and_last <- function(name){
+  name <- gsub(" ", "", name)
+  letters <- strsplit(name, split = "")[[1]]
+  c(first = min(letters), last = max(letters))
+}
+sapply(cities, first_and_last)
+# the output now returns two values: the first and last character of the city
+# name, in alphabetical order
+
+# vapply
+# vapply allows to specifically specify the output format
+?vapply
+sapply(cities, nchar)
+vapply(cities, nchar, numeric(1))
+
+sapply(cities, first_and_last)
+vapply(cities, first_and_last, character(2))
+vapply(cities, first_and_last, character(1))
+vapply(cities, first_and_last, numeric(2))
+# note the errors. they depend on the specification of the "fun.value"-argument
+# in the vapply-function. Always think about what your function should return.
+sapply(cities, unique_letters)
+vapply(cities, unique_letters, character(4))
+# here, you can see the trouble when there are different lengths in the result
+# of your code. 
+
+################################################################################
+
+## time & date
+
 
 ## Subsetting
 # usually done with [ ]
@@ -282,5 +445,6 @@ x[c(7,5)] <- 1000
 x[length(x)] <- 999
 # What does this do?
 x[seq(1, length(x), by=2)] <- x[seq(1, length(x), by=2)] * 2
-# you can also use the subset function to create subsets
+# you can also use the subset function to create subsets. However, the function
+# might struggle with large data sets.
 ?subset

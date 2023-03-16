@@ -86,6 +86,12 @@ rm(list = ls())
 # if your environment is empty again, you have already succesfully used a 
 # function. All functions follow the same pattern:
 # name(argument1, argument2, ...)
+# sd() is a function returning you the standard deviation of whatever is inside
+# the function, e.g. a vector of numbers.
+sd(c(1,2,3,4))
+# you can also assign a value and put it inside the function
+numbers <- c(1,2,3,4)
+sd(numbers)
 # actually every operation is a function
 '+'(2,4)
 # functions can also be nested and combined: (for the moment when typing 
@@ -158,8 +164,9 @@ a[c(2,4)] # 2nd and 4th elements of vector
 a[c(2:4)] # 2nd until the 4th elements of vector
 
 ## Matrices
-# All columns in a matrix must have the same mode(numeric, character, etc.) and
-# the same length. 
+# in R a matrix is a collection of elements of the same data type (numeric,
+# character, etc.) and length, arranged into a fixed number of rows and columns. Therefore,
+# it is called two-dimensional.
 #The general format is:
 
 # mymatrix <- matrix(vector, nrow=r, ncol=c, byrow=FALSE, 

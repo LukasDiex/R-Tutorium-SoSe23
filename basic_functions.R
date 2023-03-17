@@ -34,6 +34,9 @@ seq(from=1, to=10, by=3)
 # You do not need to type in the arguments' names if you know their
 # position
 seq(1,10,2) 
+# repeat a vector
+rep(c(8,6,4,2), each = 2)
+rep(c(8,6,4,2), times = 2)
 # sqaure root of something
 sqrt(16)
 #sine
@@ -426,6 +429,51 @@ vapply(cities, unique_letters, character(4))
 ################################################################################
 
 ## time & date
+# whats todays date?
+today <- Sys.Date()
+now <- Sys.time()
+today
+now
+# what class does dates in R are?
+class(today)
+class(now)
+# the POSIXct and POSIXt classes make sure, that dates and times are comparable
+# across different systems (as long as they know the POSIX standard)
+my_date <- as.Date("1820-28-11")
+# make sure to use the proper date structure
+my_date <- as.Date("1820-11-28")
+my_date
+# or specifiy your date structure explicitely
+my_date <- as.Date("1820-28-11", format = "%Y-%d-%m")
+# note, that R still print a YY-MM-DD structure
+my_date
+class(my_date)
+# you can also create POSIXct objects
+my_time <- as.POSIXct("1967-06-02 13:12:26")
+my_time
+class(my_time)
+# Date arithmetic
+# calculate dates
+my_date+1
+# calculate time differences
+my_date2 <- as.Date("1818-05-05")
+my_date-my_date2 # Karl Marx was born 938 days before Friedrich Engels
+my_time2 <- as.POSIXct("1968-04-02 16:10:27")
+my_time2+1
+my_time-my_time2
+my_time2-my_time
+# how do dates work in R, whats under the hood?
+unclass(my_date)
+# the console returns a value of -54455. This is the difference in days between
+# the 1st of January 1970, the reference value R uses and the birth of Engels
+my_date3 <- as.Date("1970-01-01")
+my_date3-my_date
+# if you are calculating dates, you actually calculate single values that are 
+# linked to 01.01.1970 as a reference value.
+
+
+
+
 
 
 ## Subsetting

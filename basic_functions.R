@@ -17,6 +17,7 @@ max(x)
 min(x) 
 # unique values in vector
 unique(x) 
+length(unique(x))
 # frequency table of vector
 table(x) 
 # simple plot with index on x-axis and values on y-axis
@@ -46,7 +47,7 @@ cos(0)
 #tangent
 tan(0)  
 #natural logarithm
-log(1)
+log(6)
 #e^x
 exp(1)        
 #next higher integer
@@ -91,7 +92,7 @@ c(TRUE, TRUE, FALSE) * 2 + c(3,4,pi)
 # TRUe and FALSE are fixed values in R -> case sensitive!
 TRUE <- 'something else' # Doesn't work
 True <- 'something else' # Does work
-# WARNING do not use "T <- 'something else' as this is the abbreviation of TRUE
+# WARNING do not use "T" <- 'something else' as this is the abbreviation of TRUE
 
 ################################################################################
 
@@ -266,7 +267,7 @@ while(condition) {  # if this condition holds
 count <- 1
 while(count <= 7) {
   print(paste("count is set to", count))
-  count <- count +1   
+  count <- count +1 
 }
 # note that we have two expressions in this example. one tells the loop what to
 # print. and the other increments the count variable to prevent the loop from
@@ -489,10 +490,15 @@ x[c(1,1,2,3,1,1:10)]
 y <- x[1:5]
 # insert new values
 x[c(7,5)] <- 1000
+x
 # we can also use functions to give positions:
 x[length(x)] <- 999
+x
 # What does this do?
 x[seq(1, length(x), by=2)] <- x[seq(1, length(x), by=2)] * 2
+x
 # you can also use the subset function to create subsets. However, the function
 # might struggle with large data sets.
 ?subset
+
+

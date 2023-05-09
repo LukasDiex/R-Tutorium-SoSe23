@@ -1,3 +1,4 @@
+
 # Welcome to the R-Tutorial 
 # this file will guide you around the basic settings of RStudio and will
 # introduce you to some basic operations in R
@@ -210,7 +211,7 @@ myframe[,1:2]
 # columns ID and Age from data frame
 myframe[,c("ID","Color")]  
 # variable x1 in the data frame
-myframe$ID       
+myframe$ID    
 # 3rd element of variable x1 in the data frame
 myframe$ID[3]              
 
@@ -243,7 +244,7 @@ mylist[c(1:2)]
 # variable gender with 20 "male" entries and 30 "female" entries 
 # (the rep command replicates a given argument a given number of times)
 # entries are saved as characters
-gender <- c(rep("male",20), rep("female", 30)) 
+gender <- c(rep("male",20), rep("female", 30), rep("trans", 10)) 
 gender
 class(gender)
 summary(gender)

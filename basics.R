@@ -84,7 +84,7 @@ rm(a)
 rm(list = ls())
 
 ## Functions
-# if your environment is empty again, you have already succesfully used a 
+# if your environment is empty again, you have already successfully used a 
 # function. All functions follow the same pattern:
 # name(argument1, argument2, ...)
 # sd() is a function returning you the standard deviation of whatever is inside

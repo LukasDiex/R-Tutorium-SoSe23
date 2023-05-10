@@ -200,10 +200,17 @@ dice%o%dice
 ## if else statements
 # if
 if() {}
-# else
-else() {}
 # else if
 else if() {}
+# else
+else() {}
+
+
+
+
+
+
+
 # example
 if(9 < 10) {print('This happens')}
 if(9 > 10) {print('This does not happen')}
@@ -267,7 +274,7 @@ while(condition) {  # if this condition holds
 count <- 1
 while(count <= 7) {
   print(paste("count is set to", count))
-  count <- count +1 
+  count <- count+1
 }
 # note that we have two expressions in this example. one tells the loop what to
 # print. and the other increments the count variable to prevent the loop from
@@ -298,7 +305,7 @@ cities <- c("Turin", "Barcelona", "London", "Paris", "Havanna",
             "Wien", "Mexico City", "Hongkong", "Hamburg")
 cities
 
-for(city in cities){
+for(i in cities){
   print(city)
 }
 city

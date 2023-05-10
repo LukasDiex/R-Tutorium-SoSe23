@@ -5,7 +5,8 @@ library(openxlsx)
 library(dplyr)
 library(ggplot2)
 library(doBy)
-
+library(convey)
+library(survey)
 ## Read Data ##
 # if you always save your data in the same path as the project, you can easily
 # access the data, without specifying the full path. and, again this is good
@@ -80,12 +81,7 @@ head(data_1)
 data_2 <- df[,-c(1, 12)]
 head(data_2)
 # however, we could have done this more efficiently
-data <- subset(df, Time == "2020-11-07", select = c("Bezirk", "GKZ",
-                                                    "AnzahlFaelle",
-                                                    "AnzahlFaelleSum",
-                                                    "SiebenTageInzidenzFaelle",
-                                                    "AnzahlTotTaeglich",
-                                                    "AnzahlGeheiltSum"))
+data <- subset(df, Time == "2020-11-07", select = c(2:10))
 head(data)
 # You might also see a different type of "coding": the dplyr-version. "dplyr" is
 # a package designed for data manipulation which uses tubes (%>%). In most cases
@@ -97,7 +93,7 @@ head(data)
 # "browseVignettes(package = "dplyr")" into your console. Your browser will 
 # open and display a help page. Choose "introduction to dplyr" and open the 
 # R-code version. Here you get usefull advice on how to handle the package.
-data <- data %>% select(Bezirk, GKZ, AnzahlFaelle, AnzahlFaelleSum,
+data <- data %>% select(Bezirk, GKZ, AnzEinwohner, AnzahlFaelle, AnzahlFaelleSum,
                         SiebenTageInzidenzFaelle, AnzahlTotTaeglich)
 head(data)
 # when looking at the data, we can also see that the incidence uses decimal 
@@ -105,7 +101,7 @@ head(data)
 # use the variable
 data$SiebenTageInzidenzFaelle <- gsub(",",".", data$SiebenTageInzidenzFaelle)
 # you can also combine tubes
-data <- data %>% select(Bezirk, GKZ, AnzahlFaelle, AnzahlFaelleSum, 
+data <- data %>% select(Bezirk, GKZ, AnzEinwohner,AnzahlFaelle, AnzahlFaelleSum, 
                         SiebenTageInzidenzFaelle) %>% rename(Inzidenz =
                                                                SiebenTageInzidenzFaelle)
 
@@ -121,31 +117,72 @@ country_indicator <- substr(df$GKZ, 1, 1)
 bar_colors <- colors[as.integer(country_indicator)]
 barplot(data$AnzahlFaelle, names.arg = data$Bezirk, ylab = "Anzahl positiver Fälle am Stichtag", col = bar_colors, border = NA, space = 0.5)
 
-
+# now lets do a scatterplot with the number of inhabitants of a district
+# and the number of positively tested persons
+scatter.smooth(data$AnzahlFaelle, data$AnzEinwohner)
+# Vienna appears to be an outlier, what if we exclude Vienna?
+data_novie <- data[-94,]
+scatter.smooth(data_novie$AnzahlFaelle, data_novie$AnzEinwohner, 
+               family = "gaussian", xlab = "Anzahl positiv getester Personen",
+               ylab="Anzahl Einwohner*innen", lpars=list(col="red", lwd=3, lty=1))
 ################################################################################
 ## using EU-SILC
+# these are sample files for Austria in 2013. These are not official data from
+# the EU-SILC and are therefore not representative for any kind of population.
+
+# EU-SILC uses 4 different datasheets. Regarding observations on the individual 
+# level, you get the "p" and "r" file. P contains data on individual's income,
+# sociodemographic background and so on. R contains more technical data. The same
+# goes for observations on the household level. There the files are called "d"
+# and "h".
 load("AT_CD_2013_small.RData")
 load("AT_CH_2013_small.RData")
 load("AT_CP_2013_small.RData")
 load("AT_CR_2013_small.Rdata")
 
-p_data<-aut_p %>% rename(pid=PB030)
-p_register<-aut_r %>% rename(pid=RB030, hhid=RX030)
-hh_data <- aut_h %>% rename(hhid=HB030)
-hh_register <- aut_d %>% rename(hhid=DB030)
-# now check if there are rows in your data that do not match with the other data file
-testjoin <- p_data %>% anti_join(p_register, by="pid")
-# as there are no non-matches, we can simply merge
-p_data <- p_register %>% left_join(p_data, by="pid")
-h_data <- hh_register %>% left_join(hh_data,by="hhid")
-# lets also add the household data to the file
-data <- p_data %>% left_join(h_data, by="hhid")
-# remove original files
-rm(aut_d, aut_h, aut_p, aut_r, testjoin, p_register, p_data, hh_data, hh_register, h_data)
+# go to https://www.gesis.org/en/missy/metadata/EU-SILC/2013/Cross-sectional/original
+# EU-SILC is one of the best documented surveys available, especially on a
+# cross-country level. This homepages provides documentation on the survey-procedure
+# the variables included and an overview of the variable's values.
+
+## Merging Data
+# First, we want to create unique ID-variables as they might be used elsewhere for
+# another country (in case you are working with the actual cross-country EU-SILC data)
+# create household IDs
+aut_h$id_h <- paste(aut_h$HB020, aut_h$HB030, sep="") # hb020=Country, hb030=household ID
+aut_d$id_h <- paste(aut_d$DB020, aut_d$DB030, sep="") # db020=Country, db030=household ID
+aut_p$id_h <- paste(aut_p$PB020, aut_p$PX030, sep="") # pb020=Country, px030=personal ID
+aut_r$id_h <- paste(aut_r$RB020, aut_r$RX030, sep="") # pb020=Country, rx030=personal ID
+# create personal IDs
+aut_p$id_p <- paste(aut_p$PB020, aut_p$PB030, sep ="")
+aut_r$id_p <- paste(aut_r$RB020, aut_r$RB030, sep ="")
+# now we can merge the two household files
+# first we check for observations that are contained in one of the dataframes, but
+# not in the other
+testjoin_hh <- anti_join(aut_d, aut_h, by="id_h")
+aut_hh <- right_join(aut_d, aut_h, by="id_h")
+# now we can merge the two household files
+testjoin_p <- anti_join(aut_r, aut_p, by = c("id_p" = "id_p", 
+                                             "id_h" = "id_h"))
+# we can see that the register file contains more observations than the data file.
+# this is due to the fact that not every interview was completed succesfully. So,
+# individuals might appear in the register file, but have no data.
+# now merge the personal file
+aut_indiv <- right_join(aut_r, aut_p, by = c("id_p" = "id_p", 
+                                             "id_h" = "id_h"))
+# Finally, we can merge the houeshold file with the individual file
+data <- right_join(aut_hh, aut_indiv, by = "id_h")
+
+#now we can remove the other data files
+rm(aut_d, aut_h, aut_p, aut_r, aut_hh, aut_indiv, testjoin_hh, testjoin_p)
+
 # now lets get a subset
-data.temp <- data %>% select(pid, hhid, RB080, RB090, PB210, PE040, PL031, HY020, HS120, HX040, DB090,PB040) %>%
+# in order to get a better overview of what we are doing, we are renaming the variables as the acronyms can get confusing. If you need to
+# look for variable names, always get back to the MISSY-homepage
+data.temp <- data %>% select(id_p, id_h, RB080, RB090, PB210, PE040, PL031, HY020, HS120, HX040, DB090,RB050, DB040, PY010G, PL040, PL060) %>%
   rename(birthyear=RB080, gender=RB090, birthcountry=PB210, educ=PE040, economicstatus=PL031,
-         hh_income=HY020, makeendsmeet=HS120, hh_size=HX040, hh_weight=DB090, p_weight=PB040)
+         hh_income=HY020, makeendsmeet=HS120, hh_size=HX040, hh_weight=DB090, p_weight=RB050, region=DB040, p_income=PY010G, emp_status=PL040,
+         h_worked_week=PL060)
 View(data.temp)
 # how to get an age variable
 data.temp$age <- 2013-data.temp$birthyear
@@ -156,8 +193,10 @@ glimpse(data.temp)
 head(data.temp)
 dim(data.temp) # number of observations
 is.na(data.temp)
-data.temp <- data.temp[complete.cases(data.temp[ , 11:12]),]
+data.temp <- na.omit(data.temp)
+View(data.temp)
 
+## Check your sample
 # How many persons are represented by the sample?
 # Sum up individual weights
 n.pop <- sum(data.temp$p_weight) #number of individuals
@@ -247,16 +286,74 @@ lab <-c("Males", "Females")
 ggplot(data = out.gender, aes(x = factor(gender), y = share, fill = factor(gender))) +
   geom_bar(stat = "identity") +
   scale_x_discrete("Gender") +
-  scale_y_continuous("Per Cent") +
+  scale_y_continuous("Percent") +
   scale_fill_manual("Pop by Gender", values = values, labels = lab)
 
+rm(males, out, out.gender, pop.by.gender, coul, lab, n, n.fem.pop, n.pop, n.fem.sample,
+   n.pop.h, share.fem.pop, share.fem.sampl, values)
 
+# now lets create a survey design
+# survey designs are needed for performing regressions and other operations, as 
+# we deal with survey data which needs to be weighted in order to representative
+# for the overall population
+?svydesign
+# survey design for individual level operations
+data.pd.svy <- svydesign(ids = ~ id_p, strata = ~region,
+                         weights = ~ p_weight,
+                         data = data.temp) %>% convey_prep()
+# survey design for household level operations
+data.hd.svy <- svydesign(ids = ~ id_h, strata = ~region,
+                         weights = ~ hh_weight,
+                         data = data.temp) %>% convey_prep()
+###Survey Lorenz Kurve
+lorenz <- svylorenz(~hh_income, design = subset(data.hd.svy, !is.na(hh_income)),
+          quantiles = seq(0,1,0.1),
+          alpha = 0.05,
+          curve.col = "red")
+#Histogram
+svyhist(~hh_income, design = data.hd.svy, main = "Adjustable household income in AT 2013",
+        col = "deeppink4", breaks = 100)
 
+svyhist(~hh_income, design = subset(data.hd.svy, hh_income > 0 & hh_income <75000),
+        main = "Adjustable household income in AT 2013",
+        col = "deeppink4",
+        breaks = 75,
+        xlab = "wage level", ylab = "density mass")
 
+lines(svysmooth(~hh_income,
+                design = subset(data.hd.svy, hh_income > 0 & hh_income < 75000)),
+      lwd = 2, col = "gray") 
 
+# Mean in groups
+tab.inc <- svyby(~p_income, ~gender + educ, 
+                 design = subset(data.pd.svy, p_income > 0),
+                 svymean)
+barplot(tab.inc)
+tab.inc <- rbind(tab.inc, c(1,1,0,0))
+tab.inc <- tab.inc[order(tab.inc$educ),]
+barplot(tab.inc)
+legend("topleft", c("Male", "Female"),
+       fill = c("black", "gray"), cex = 1, ncol = 2)
 
+## Regressions
+# first we create the subsample we need for the regression
+data.reg <- data.temp %>% filter(emp_status == 3,
+                              h_worked_week > 0) %>%
+  mutate(hwages = p_income / ((h_worked_week)*52))%>%
+  mutate(gender = factor(gender, labels = c('Male','Female')))
 
-##########################################################################################
+# to see the difference, we first do the regression without the survey design
+nonsvyols <- lm(hwages ~ age + gender, data = data.reg)
+# now we use the surveydesign
+reg.pd.svy <- svydesign (ids = ~ id_p, strata = ~region,
+                          weights = ~p_weight, data = data.reg) %>%
+  convey_prep()
+
+svyols <- svyglm(hwages ~ age + gender, design = reg.pd.svy)
+summary(svyols)
+hist(svyols$residuals)
+summary(nonsvyols)
+hist(nonsvyols$residuals)
 
 
 

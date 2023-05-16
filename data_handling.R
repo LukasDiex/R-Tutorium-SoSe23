@@ -21,7 +21,9 @@ df_2 <- read.xlsx("data/example.xlsx", sheet = "Sheet2")
 # Austria. The data starts on 26.02.2020 and ends on 03.05.2021. We will 
 # have a closer look on what data is contained within the dataset, manipulate
 # it and do some descriptives. 
-df <- read.csv("ts_covid_sortiert.csv", sep = ";")
+df <- read.csv("ts_covid_sortiert.csv", sep=";")
+df$SiebenTageInzidenzFaelle <- gsub(",",".", df$SiebenTageInzidenzFaelle)
+df$SiebenTageInzidenzFaelle <- as.numeric(df$SiebenTageInzidenzFaelle)
 # getwd gets you your current working directory so you can check where your files
 # are saved. use setwd() to change your current working directory.
 getwd()
@@ -72,16 +74,16 @@ max_date
 # now we know that on the 07.11.2020 Eferding had the highest covid incidence 
 # in our observation period. therefore, we now get rid of the time dimension
 # by extracting this day.
-data_1 <- subset(df, Time == "2020-11-07")
+data_1 <- subset(df, Time == "2020-11-12")
 head(data_1)
 # however, we no longer care about the Time-column and we also do not need the
 # number of people who have recovered. (look at the changes in your
 # envrionment). Also, note that instead of using the subset()-function we
 # directly adressed the index of the columns of interest.
-data_2 <- df[,-c(1, 12)]
+data_2 <- data_1[,-c(1, 12)]
 head(data_2)
 # however, we could have done this more efficiently
-data <- subset(df, Time == "2020-11-07", select = c(2:10))
+data <- subset(df, Time == "2020-11-12", select = c(2:10))
 head(data)
 # You might also see a different type of "coding": the dplyr-version. "dplyr" is
 # a package designed for data manipulation which uses tubes (%>%). In most cases
@@ -99,7 +101,6 @@ head(data)
 # when looking at the data, we can also see that the incidence uses decimal 
 # values with a comma instead of a point. we need to change this in order to 
 # use the variable
-data$SiebenTageInzidenzFaelle <- gsub(",",".", data$SiebenTageInzidenzFaelle)
 # you can also combine tubes
 data <- data %>% select(Bezirk, GKZ, AnzEinwohner,AnzahlFaelle, AnzahlFaelleSum, 
                         SiebenTageInzidenzFaelle) %>% rename(Inzidenz =
@@ -115,7 +116,7 @@ par(las = 2)
 colors <- c("#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22")
 country_indicator <- substr(df$GKZ, 1, 1)
 bar_colors <- colors[as.integer(country_indicator)]
-barplot(data$AnzahlFaelle, names.arg = data$Bezirk, ylab = "Anzahl positiver Fälle am Stichtag", col = bar_colors, border = NA, space = 0.5)
+barplot(data$AnzahlFaelle, names.arg = data$Bezirk, ylab = "Anzahl positiver F?lle am Stichtag", col = bar_colors, border = NA, space = 0.5)
 
 # now lets do a scatterplot with the number of inhabitants of a district
 # and the number of positively tested persons
@@ -179,10 +180,10 @@ rm(aut_d, aut_h, aut_p, aut_r, aut_hh, aut_indiv, testjoin_hh, testjoin_p)
 # now lets get a subset
 # in order to get a better overview of what we are doing, we are renaming the variables as the acronyms can get confusing. If you need to
 # look for variable names, always get back to the MISSY-homepage
-data.temp <- data %>% select(id_p, id_h, RB080, RB090, PB210, PE040, PL031, HY020, HS120, HX040, DB090,RB050, DB040, PY010G, PL040, PL060) %>%
+data.temp <- data %>% select(id_p, id_h, RB080, RB090, PB210, PE040, PL031, HY020, HS120, HX040, DB090,RB050, DB040, PY010G, PL040, PL060, DB020, HX090, HH050) %>%
   rename(birthyear=RB080, gender=RB090, birthcountry=PB210, educ=PE040, economicstatus=PL031,
-         hh_income=HY020, makeendsmeet=HS120, hh_size=HX040, hh_weight=DB090, p_weight=RB050, region=DB040, p_income=PY010G, emp_status=PL040,
-         h_worked_week=PL060)
+         hh_income=HY020, makeendsmeet=HS120, hh_size=HX040, hh_weight=DB090, p_weight=RB050, region=DB040, country=DB020, p_income=PY010G, emp_status=PL040,
+         h_worked_week=PL060, arp=HX090, warm=HH050)
 View(data.temp)
 # how to get an age variable
 data.temp$age <- 2013-data.temp$birthyear
@@ -301,10 +302,15 @@ rm(males, out, out.gender, pop.by.gender, coul, lab, n, n.fem.pop, n.pop, n.fem.
 data.pd.svy <- svydesign(ids = ~ id_p, strata = ~region,
                          weights = ~ p_weight,
                          data = data.temp) %>% convey_prep()
+data.pd.svy.pos <- subset(data.pd.svy, p_income>0)
+
 # survey design for household level operations
 data.hd.svy <- svydesign(ids = ~ id_h, strata = ~region,
                          weights = ~ hh_weight,
                          data = data.temp) %>% convey_prep()
+data.hd.svy.pos <- subset(data.hd.svy, hh_income>0)
+
+
 ###Survey Lorenz Kurve
 lorenz <- svylorenz(~hh_income, design = subset(data.hd.svy, !is.na(hh_income)),
           quantiles = seq(0,1,0.1),
@@ -355,8 +361,86 @@ hist(svyols$residuals)
 summary(nonsvyols)
 hist(nonsvyols$residuals)
 
+## Median and Quantiles
+# Median
+svyquantile(~p_income, data.pd.svy.pos, quantile = c(0.5), na.rm=TRUE)
+
+svyby(~p_income, by=~country, 
+      design = data.pd.svy.pos, FUN = svyquantile,
+      quantiles=c(0.25, 0.5, 0.75), ci = TRUE)
+
+median_wage_gender<- svyby(~p_income, 
+                           ~gender, design = data.pd.svy.pos,
+                           svyquantile, quantiles = 0.5, ci=TRUE, 
+                           include.lowest=TRUE)
+# Mean
+svymean(~hh_income, design = data.hd.svy)
+svyby(formula = ~hh_income, by =~country, 
+      design=data.hd.svy, FUN=svymean)
+# Deciles
+svyquantile(~p_income, data.pd.svy.pos, quantile = seq(0, 1,by = 0.1),
+            method = "linear", ties = "rounded", na.rm=TRUE)
 
 
+##generieren von 5 'klassen' der lohnverteilung
+#cdf speichern
+cdfs<-svycdf(~p_income, data.pd.svy.pos) #function abspreichern
+#zb cdf an stelle 1.000 abrufen: 
+cdfs[[1]](1000)#
+cdfs[[1]](c(1000,3000)) #6 - 14 % der löhne liegen zwischen 1.000 und 3.000 euro
+
+#im design speichern
+data.pd.svy.pos<- update(data.pd.svy.pos,
+                            cdf_wages=cdfs[[1]](p_income))
+#abrufen 
+data.pd.svy.pos$variables$cdf_wages
+
+#in gruppen umcodieren:
+data.pd.svy.pos<-update(data.pd.svy.pos, 
+                           cdf_wages_100=ceiling(cdf_wages*100))
 
 
+data.pd.svy.pos<- update(data.pd.svy.pos,
+                            income_class=cut(cdf_wages,
+                                             c(0,0.5,0.9,0.99,1),
+                                             labels=c('bottom 50', 'middle class', 'upper class', 'Top 1%')))
+
+#income share by group: 
+income_classes <- svyby(~p_income, ~income_class, data.pd.svy.pos, svytotal)
+total_income <- svytotal(~p_income, data.pd.svy.pos)
+income_classes[,2] / total_income[1]
+
+#one continous variable
+#add a count variable
+data.hd.svy.pos <- update(data.hd.svy.pos, count=1)
+svytotal(~count,data.hd.svy.pos )
+
+cdf.wage <- svycdf(~p_income, data.pd.svy.pos)
+
+silc.hh.pos <- filter(data.temp, hh_income>0)
+cdf.wage.wowgt <- ecdf(silc.hh.pos$hh_income)
+plot(cdf.wage, do.points=FALSE, xlab = "Wage Income", 
+     ylab = "Cdf")
+plot(cdf.wage, do.points = FALSE, xlab = 
+       "Wage Income", ylab = "cdf", 
+     main = "cdf Wag Inc AT", xlim = c(0,4*10^5))
+
+lines(cdf.wage.wowgt, do.points = FALSE, lwd = 2, 
+      col = "red" )
+legend("bottomright", bty = "n", fill = c("black", "red"), 
+       legend = c("weighted", "unweighted"))
+
+##histogram:
+svyhist(~p_income, design = data.pd.svy.pos, 
+        main = "histogram Wage Income", 
+        col ="gray", xlab = "Wage Income")
+svyhist(~p_income, design = subset(data.pd.svy.pos, p_income < 150000), 
+        main = "hist wage", col = "gray", xlab = "inc wage")
+lines(svysmooth(~p_income, subset(data.pd.svy.pos, p_income < 150000)), 
+      lwd = 2)        
+
+# Boxplot
+svyboxplot(p_income~as.factor(educ), data.pd.svy.pos,
+           main = "Boxplot Wage Income",
+           col = "gray", ylab = "Wage Income", xlab="Educ-Groups")
 

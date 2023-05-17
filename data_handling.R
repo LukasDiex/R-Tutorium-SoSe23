@@ -444,3 +444,6 @@ svyboxplot(p_income~as.factor(educ), data.pd.svy.pos,
            main = "Boxplot Wage Income",
            col = "gray", ylab = "Wage Income", xlab="Educ-Groups")
 
+
+# Sonderbefragung: Frankreich nicht auffindbar
+

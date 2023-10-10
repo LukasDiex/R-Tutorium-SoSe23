@@ -13,7 +13,7 @@
 # Now, what do these quadrants do?
 # The one you will use the most is the one showing your "script". Especially
 # if you are not used to coding in R, you will use this one to write your
-# code. The script saves your code and automically appears if you start R the
+# code. The script saves your code and automatically appears if you start R the
 # next time. Without explicitly forcing R to, no code will be run when using
 # the script.
 # The "Console" actually runs your code. If you want to run the code you wrote
@@ -41,7 +41,7 @@
 # after running the code, the console shows you the result
 # however, this result is not saved anywhere
 a <- 1+1
-# the arrow pointing to the a indicates that we defined "a" as the result of 
+# the arrow pointing to the "a" indicates that we defined "a" as the result of 
 # our 1+1 calculation. however, now the console doesn't show a result. Take 
 # care when naming your values as R is sensitive to upper and lower case 
 # letters. also, letters can be overwritten. WARNING: actually everything, 
@@ -60,7 +60,7 @@ d <- c/b
 e <- 5*                     8
 f <- 40 /
   5
-# you can also change different operations in on line
+# you can also chain different operations in on line
 1+1; 2*2
 a;b
 
@@ -90,7 +90,7 @@ rm(list = ls())
 # sd() is a function returning you the standard deviation of whatever is inside
 # the function, e.g. a vector of numbers.
 sd(c(1,2,3,4))
-# you can also assign a value and put it inside the function
+# you can also assign a value to a variable and put it inside the function
 numbers <- c(1,2,3,4)
 sd(numbers)
 # actually every operation is a function
@@ -104,6 +104,8 @@ exp(log(25))
 ?exp
 # functions can also be used with "pipes". these are not of base R, but need 
 # the dplyr package. we will look at the package later. 
+5%>%exp
+library(dplyr)
 5%>%exp
 # the %>%-operator is the pipe that basically passes the left hand side of the 
 # operator to the first argument of the right hand side operator
@@ -123,15 +125,6 @@ c <- c(exp(1),exp(2),exp(3),exp(4),exp(5))
 # solution starts at line 140
 p <- 6 
 q <- 5
-
-
-
-
-
-
-
-
-
 
 
 
@@ -195,7 +188,7 @@ y[2:4,1:3] # rows 2,3,4 of columns 1,2,3
 ?array
 
 ## Data Frames
-# A data frame is more general than a matrix, in that different columns can 
+# A data frame is more general than a matrix in that different columns can 
 # have different modes (numeric, character, factor, etc.).
 d <- c(1,2,3,4)
 e <- c("red", "white", "red", NA)
@@ -244,7 +237,7 @@ mylist[c(1:2)]
 # variable gender with 20 "male" entries and 30 "female" entries 
 # (the rep command replicates a given argument a given number of times)
 # entries are saved as characters
-gender <- c(rep("male",20), rep("female", 30), rep("trans", 10)) 
+gender <- c(rep("male",20), rep("female", 30), rep("other", 10)) 
 gender
 class(gender)
 summary(gender)

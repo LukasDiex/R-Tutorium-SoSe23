@@ -144,7 +144,7 @@ pnorm(0)
 #normal quantile (value at the p percentile of normal distribution))
 qnorm(0.8)     
 #r-, d-, p-, q- always evoke the above described commands for a given 
-#distributen Other distributions may vary in their parametrization.
+#distributen. Other distributions may vary in their parametrization.
 
 #commonly used distributions:
 #Normal:    -norm
@@ -199,11 +199,13 @@ dice%o%dice
 
 ## if else statements
 # if
-if() {}
+if() {
 # else if
-else if() {}
-# else
-else() {}
+} else if() {
+# else  
+} else() {
+  
+}
 
 
 
@@ -214,6 +216,7 @@ else() {}
 # example
 if(9 < 10) {print('This happens')}
 if(9 > 10) {print('This does not happen')}
+
 # a simple game of dice:
 player_1 <- sample(1:6, 1)
 player_2 <- sample(1:6, 1)
@@ -222,7 +225,7 @@ player_2 <- sample(1:6, 1)
 if(player_1 > player_2) {           
   
   print('player_1 wins')
-# However, if player2 rolled the higher number, then write player2 wins.  
+# But, if player2 rolled the higher number, then write player2 wins.  
 } else if (player_1 < player_2) {
   
   print('player_2 wins')
@@ -305,7 +308,7 @@ cities <- c("Turin", "Barcelona", "London", "Paris", "Havanna",
             "Wien", "Mexico City", "Hongkong", "Hamburg")
 cities
 
-for(i in cities){
+for(city in cities){
   print(city)
 }
 city
@@ -346,7 +349,7 @@ for(city in cities){
 ## advanced looping
 # additionally to print out the city name, we also want to have information on
 # the variables' position inside the vector. Therefore, we need to adapt the
-# "looping index". This index is a counter R uses behind the scenes to know 
+# "looping index". This index is the counter R uses behind the scenes to know 
 # which element to select on every iteration. 
 # Now instead of iterating over the cities, we will manually create the index.
 cities <- list("Turin", "Barcelona", "London", "Paris", "Havanna",
@@ -397,6 +400,8 @@ multiply <- function(x, factor) {
 result <- lapply(oil_prices, multiply, factor =3)
 result
 unlist(result)
+result_unlist <- unlist(result)
+result_unlist
 str(result)
 
 # sapply
@@ -429,10 +434,6 @@ vapply(cities, first_and_last, character(1))
 vapply(cities, first_and_last, numeric(2))
 # note the errors. they depend on the specification of the "fun.value"-argument
 # in the vapply-function. Always think about what your function should return.
-sapply(cities, unique_letters)
-vapply(cities, unique_letters, character(4))
-# here, you can see the trouble when there are different lengths in the result
-# of your code. 
 
 ################################################################################
 
@@ -442,7 +443,7 @@ today <- Sys.Date()
 now <- Sys.time()
 today
 now
-# what class does dates in R are?
+# what class are dates?
 class(today)
 class(now)
 # the POSIXct and POSIXt classes make sure, that dates and times are comparable
@@ -453,7 +454,6 @@ my_date <- as.Date("1820-11-28")
 my_date
 # or specifiy your date structure explicitely
 my_date <- as.Date("1820-28-11", format = "%Y-%d-%m")
-# note, that R still print a YY-MM-DD structure
 my_date
 class(my_date)
 # you can also create POSIXct objects

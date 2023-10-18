@@ -200,7 +200,7 @@ names(myframe) <- c("ID","Color","Passed")  # variable names
 myframe
 #There are a variety of ways to identify the elements of a data frame 
 # columns 1 to 2 of the data frame
-myframe[,1:2]               
+myframe[,1:2]                
 # columns ID and Age from data frame
 myframe[,c("ID","Color")]  
 # variable x1 in the data frame

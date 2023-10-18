@@ -27,6 +27,7 @@ summary(x)
 # print object to console
 print('Hello world') 
 # round value, second argument gives decimal place
+round(3.5467)
 round(3.5467, digits = 3) 
 # create sequence of numbers
 seq(from=1, to=10, by=3) 
@@ -93,7 +94,7 @@ c(TRUE, TRUE, FALSE) * 2 + c(3,4,pi)
 TRUE <- 'something else' # Doesn't work
 True <- 'something else' # Does work
 # WARNING do not use "T" <- 'something else' as this is the abbreviation of TRUE
-
+ 
 ################################################################################
 
 ## basic logical operators
@@ -129,7 +130,7 @@ c(1,3,5) %in% 3
 
 #Statistical probability functions
 #generates 1 random number from the standard normal distribution
-rnorm(1,0,1)       
+rnorm(1,0,100)       
 #normal density function  - probability density function (PDF)                    
 dnorm(1,0,1)
 x <- seq(from = -5, to = 5, by = 0.05)
@@ -343,6 +344,7 @@ for(city in cities){
   }
   print(city)
 }
+
 # the next statement skips those entries violating our if condition and
 # proceeds to the next iteration
 
@@ -391,7 +393,7 @@ for(i in 1:length(cities)) {
 }
 num_chars
 # or you simply use the lapply function
-lapply(cities, nchar)
+lapply(vienna, nchar)
 # create your own function and apply it with lapply
 oil_prices <- list(2.37, 2.49, 2.18, 2.22, 2.47, 2.32)
 multiply <- function(x, factor) {
@@ -403,7 +405,7 @@ unlist(result)
 result_unlist <- unlist(result)
 result_unlist
 str(result)
-
+str(result_unlist)
 # sapply
 # sapply is short for simplified apply function. look at the output in your
 # console compared to the lapply function
@@ -411,6 +413,7 @@ str(result)
 # "simplify to array"-function
 cities <- list("Turin", "Barcelona", "London", "Paris", "Havanna",
                "Wien", "Mexiko City", "Hongkong", "Hamburg")
+lapply(cities, nchar)
 sapply(cities, nchar)
 # another example
 first_and_last <- function(name){
@@ -425,6 +428,7 @@ sapply(cities, first_and_last)
 # vapply
 # vapply allows to specifically specify the output format
 ?vapply
+lapply(cities, nchar)
 sapply(cities, nchar)
 vapply(cities, nchar, numeric(1))
 

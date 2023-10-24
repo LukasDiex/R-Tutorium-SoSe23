@@ -16,19 +16,24 @@ df <- read.xlsx("example.xlsx")
 df_1 <- read.xlsx("C:/Users/diexl/Documents/Unijob/WU Department/Tutor WiPol/R Tutorium/R-Tutorium-SoSe23/example.xlsx")
 # if you need a specific sheet of your excel-file use: (this is only an example)
 df_2 <- read.xlsx("data/example.xlsx", sheet = "Sheet2")
+# getwd gets you your current working directory so you can check where your files
+# are saved. use setwd() to change your current working directory.
+getwd()
+# within the brackets you should specify the link to your directory.
+setwd()
 # read CSV-files:
 # this will be our practice file: it contains data on daily covid numbers in
 # Austria. The data starts on 26.02.2020 and ends on 03.05.2021. We will 
 # have a closer look on what data is contained within the dataset, manipulate
 # it and do some descriptives. 
 df <- read.csv("ts_covid_sortiert.csv", sep=";")
+str(df$SiebenTageInzidenzFaelle)
 df$SiebenTageInzidenzFaelle <- gsub(",",".", df$SiebenTageInzidenzFaelle)
 df$SiebenTageInzidenzFaelle <- as.numeric(df$SiebenTageInzidenzFaelle)
-# getwd gets you your current working directory so you can check where your files
-# are saved. use setwd() to change your current working directory.
-getwd()
-# within the brackets you should specify the link to your directory.
-setwd()
+# alternatively you can also use the dplyr package
+df <- df %>%
+  mutate(SiebenTageInzidenzFaelle = as.numeric(gsub(",", ".", SiebenTageInzidenzFaelle)))
+str(df$SiebenTageInzidenzFaelle)
 
 ## Data Cleaning ##
 ### have a first look at the data ###
@@ -71,7 +76,7 @@ max_value <- max(df$SiebenTageInzidenzFaelle)
 max_date <- df[df$SiebenTageInzidenzFaelle == max_value, 
                c("Time", "Bezirk", "SiebenTageInzidenzFaelle")]
 max_date
-# now we know that on the 07.11.2020 Eferding had the highest covid incidence 
+# now we know that on the 12.11.2020 Rohrbach had the highest covid incidence 
 # in our observation period. therefore, we now get rid of the time dimension
 # by extracting this day.
 data_1 <- subset(df, Time == "2020-11-12")
@@ -84,6 +89,10 @@ data_2 <- data_1[,-c(1, 12)]
 head(data_2)
 # however, we could have done this more efficiently
 data <- subset(df, Time == "2020-11-12", select = c(2:10))
+# or equivalently using dplyr
+data <- df %>%
+  filter(Time == "2020-11-12") %>%
+  select(2:10)
 head(data)
 # You might also see a different type of "coding": the dplyr-version. "dplyr" is
 # a package designed for data manipulation which uses tubes (%>%). In most cases
@@ -95,28 +104,30 @@ head(data)
 # "browseVignettes(package = "dplyr")" into your console. Your browser will 
 # open and display a help page. Choose "introduction to dplyr" and open the 
 # R-code version. Here you get usefull advice on how to handle the package.
-data <- data %>% select(Bezirk, GKZ, AnzEinwohner, AnzahlFaelle, AnzahlFaelleSum,
-                        SiebenTageInzidenzFaelle, AnzahlTotTaeglich)
-head(data)
+
 # when looking at the data, we can also see that the incidence uses decimal 
 # values with a comma instead of a point. we need to change this in order to 
 # use the variable
 # you can also combine tubes
-data <- data %>% select(Bezirk, GKZ, AnzEinwohner,AnzahlFaelle, AnzahlFaelleSum, 
-                        SiebenTageInzidenzFaelle) %>% rename(Inzidenz =
-                                                               SiebenTageInzidenzFaelle)
-
-head(data)
-barplot(data$AnzahlFaelle)
+rm(list = ls())
+df <- read.csv("ts_covid_sortiert.csv", sep=";")
+data <- df %>% filter(Time == "2020-11-12") %>%
+               select(Bezirk, GKZ, AnzEinwohner, AnzahlFaelle, AnzahlFaelleSum, 
+                        SiebenTageInzidenzFaelle) %>% 
+               rename(Inzidenz = SiebenTageInzidenzFaelle) %>%
+               mutate(Inzidenz = as.numeric(gsub(",", ".", Inzidenz)))
+head(data)     
+                  
+barplot(data$Inzidenz)
 # now lets brush up the plot
-barplot(data$AnzahlFaelle, names.arg = data$Bezirk, ylab = "Anzahl positiver Fälle am Stichtag")
+barplot(data$Inzidenz, names.arg = data$Bezirk, ylab = "Anzahl positiver Fälle am Stichtag")
 par(las = 2)
 # now lets add some color to the bars, according to the respective counties of 
 # the districts
 colors <- c("#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22")
 country_indicator <- substr(df$GKZ, 1, 1)
 bar_colors <- colors[as.integer(country_indicator)]
-barplot(data$AnzahlFaelle, names.arg = data$Bezirk, ylab = "Anzahl positiver F?lle am Stichtag", col = bar_colors, border = NA, space = 0.5)
+barplot(data$Inzidenz, names.arg = data$Bezirk, ylab = "Anzahl positiver F?lle am Stichtag", col = bar_colors, border = NA, space = 0.5)
 
 # now lets do a scatterplot with the number of inhabitants of a district
 # and the number of positively tested persons
@@ -127,6 +138,7 @@ scatter.smooth(data_novie$AnzahlFaelle, data_novie$AnzEinwohner,
                family = "gaussian", xlab = "Anzahl positiv getester Personen",
                ylab="Anzahl Einwohner*innen", lpars=list(col="red", lwd=3, lty=1))
 ################################################################################
+rm(list = ls())
 ## using EU-SILC
 # these are sample files for Austria in 2013. These are not official data from
 # the EU-SILC and are therefore not representative for any kind of population.
@@ -161,6 +173,7 @@ aut_r$id_p <- paste(aut_r$RB020, aut_r$RB030, sep ="")
 # first we check for observations that are contained in one of the dataframes, but
 # not in the other
 testjoin_hh <- anti_join(aut_d, aut_h, by="id_h")
+testjoin_hh
 aut_hh <- right_join(aut_d, aut_h, by="id_h")
 # now we can merge the two household files
 testjoin_p <- anti_join(aut_r, aut_p, by = c("id_p" = "id_p", 
@@ -173,10 +186,9 @@ aut_indiv <- right_join(aut_r, aut_p, by = c("id_p" = "id_p",
                                              "id_h" = "id_h"))
 # Finally, we can merge the houeshold file with the individual file
 data <- right_join(aut_hh, aut_indiv, by = "id_h")
-
 #now we can remove the other data files
-rm(aut_d, aut_h, aut_p, aut_r, aut_hh, aut_indiv, testjoin_hh, testjoin_p)
-
+rm(aut_d, aut_h, aut_p, aut_r, aut_indiv, testjoin_hh, testjoin_p)
+View(data)
 # now lets get a subset
 # in order to get a better overview of what we are doing, we are renaming the variables as the acronyms can get confusing. If you need to
 # look for variable names, always get back to the MISSY-homepage
@@ -186,7 +198,8 @@ data.temp <- data %>% select(id_p, id_h, RB080, RB090, PB210, PE040, PL031, HY02
          h_worked_week=PL060, arp=HX090, warm=HH050)
 View(data.temp)
 # how to get an age variable
-data.temp$age <- 2013-data.temp$birthyear
+data.temp <- data.temp %>%
+  mutate(age = 2013 - birthyear)
 
 #Inspecting the data set 
 str(data.temp)
@@ -196,32 +209,28 @@ dim(data.temp) # number of observations
 is.na(data.temp)
 data.temp <- na.omit(data.temp)
 View(data.temp)
+sum(is.na(data.temp))
 
 ## Check your sample
 # How many persons are represented by the sample?
 # Sum up individual weights
 n.pop <- sum(data.temp$p_weight) #number of individuals
-
 #counted with household weights
 n.pop.h <- sum(data.temp$hh_weight) #number of individuals
-
 n.pop;n.pop.h
 # Note: institutional households (prisons, boarding schools, homes for the elderly, etc.) and homeless people are excluded
 
-# How many women / men are in the data set?
+# How many women / men are in the sample?
 # rb090: 1 - male, 2 - female
 table(data.temp$gender)
-
 # Using individual survey weights: how many men/women do these data represent?
 sum((data.temp$gender == 1)*data.temp$p_weight)
 sum((data.temp$gender == 2)*data.temp$p_weight)
-
 #alternative based on dplyr
 males <- data.temp %>% filter(gender == 1) %>% 
   mutate(population = gender * p_weight) %>%
   summarise(males.in.pop = sum(population))
 males
-
 ##for males and females at same time
 pop.by.gender <- data.temp %>%
   group_by(factor(gender)) %>%
@@ -251,10 +260,11 @@ share.fem.sampl
 summary(data.temp$educ) 
 table(data.temp$educ)
 
-out <- summaryBy(p_weight ~ educ, data=data.temp, FUN=sum) 
-print(out)
-
-out$share <- out$p_weight.sum/n.pop*100
+out <- data.temp %>%
+  group_by(educ) %>%
+  summarise(pop = sum(p_weight))
+out
+out$share <- out$pop/n.pop*100
 sum(out$share)
 
 barplot(out$share)
@@ -271,11 +281,11 @@ barplot(out$share,
 
 # Plot shares for sex 
 # Use pb150=gender: 1 - male, 2 - female
-out.gender <- summaryBy(p_weight ~ gender, data = data.temp, FUN = sum)
-out.gender$share <- out.gender$p_weight.sum/n.pop*100
-
-out.gender <- data.frame(out.gender)
-
+out.gender <- data.temp %>%
+  group_by(gender) %>%
+  summarise(pop = sum(p_weight))
+out.gender
+out.gender$share <- out.gender$pop/n.pop*100
 barplot(out.gender$share)
 barplot(out.gender$share, names.arg=c("Males", "Females"), 
         ylab="% Per Cent", main="Gender", col="firebrick")
@@ -299,17 +309,14 @@ rm(males, out, out.gender, pop.by.gender, coul, lab, n, n.fem.pop, n.pop, n.fem.
 # for the overall population
 ?svydesign
 # survey design for individual level operations
+data.temp <- data.temp %>% filter(p_income > 0)
 data.pd.svy <- svydesign(ids = ~ id_p, strata = ~region,
                          weights = ~ p_weight,
                          data = data.temp) %>% convey_prep()
-data.pd.svy.pos <- subset(data.pd.svy, p_income>0)
-
 # survey design for household level operations
 data.hd.svy <- svydesign(ids = ~ id_h, strata = ~region,
                          weights = ~ hh_weight,
                          data = data.temp) %>% convey_prep()
-data.hd.svy.pos <- subset(data.hd.svy, hh_income>0)
-
 
 ###Survey Lorenz Kurve
 lorenz <- svylorenz(~hh_income, design = subset(data.hd.svy, !is.na(hh_income)),
@@ -319,13 +326,11 @@ lorenz <- svylorenz(~hh_income, design = subset(data.hd.svy, !is.na(hh_income)),
 #Histogram
 svyhist(~hh_income, design = data.hd.svy, main = "Adjustable household income in AT 2013",
         col = "deeppink4", breaks = 100)
-
-svyhist(~hh_income, design = subset(data.hd.svy, hh_income > 0 & hh_income <75000),
+svyhist(~hh_income, design = subset(data.hd.svy, hh_income <75000),
         main = "Adjustable household income in AT 2013",
         col = "deeppink4",
         breaks = 75,
         xlab = "wage level", ylab = "density mass")
-
 lines(svysmooth(~hh_income,
                 design = subset(data.hd.svy, hh_income > 0 & hh_income < 75000)),
       lwd = 2, col = "gray") 
@@ -335,7 +340,6 @@ tab.inc <- svyby(~p_income, ~gender + educ,
                  design = subset(data.pd.svy, p_income > 0),
                  svymean)
 barplot(tab.inc)
-tab.inc <- rbind(tab.inc, c(1,1,0,0))
 tab.inc <- tab.inc[order(tab.inc$educ),]
 barplot(tab.inc)
 legend("topleft", c("Male", "Female"),
@@ -354,23 +358,25 @@ nonsvyols <- lm(hwages ~ age + gender, data = data.reg)
 reg.pd.svy <- svydesign (ids = ~ id_p, strata = ~region,
                           weights = ~p_weight, data = data.reg) %>%
   convey_prep()
-
 svyols <- svyglm(hwages ~ age + gender, design = reg.pd.svy)
+
 summary(svyols)
-hist(svyols$residuals)
 summary(nonsvyols)
+
+par(mfrow = c(1, 2))
+hist(svyols$residuals)
 hist(nonsvyols$residuals)
 
 ## Median and Quantiles
 # Median
-svyquantile(~p_income, data.pd.svy.pos, quantile = c(0.5), na.rm=TRUE)
+svyquantile(~p_income, data.pd.svy, quantile = c(0.5), na.rm=TRUE)
 
 svyby(~p_income, by=~country, 
-      design = data.pd.svy.pos, FUN = svyquantile,
+      design = data.pd.svy, FUN = svyquantile,
       quantiles=c(0.25, 0.5, 0.75), ci = TRUE)
 
 median_wage_gender<- svyby(~p_income, 
-                           ~gender, design = data.pd.svy.pos,
+                           ~gender, design = data.pd.svy,
                            svyquantile, quantiles = 0.5, ci=TRUE, 
                            include.lowest=TRUE)
 # Mean
@@ -378,47 +384,42 @@ svymean(~hh_income, design = data.hd.svy)
 svyby(formula = ~hh_income, by =~country, 
       design=data.hd.svy, FUN=svymean)
 # Deciles
-svyquantile(~p_income, data.pd.svy.pos, quantile = seq(0, 1,by = 0.1),
+svyquantile(~p_income, data.pd.svy, quantile = seq(0, 1,by = 0.1),
             method = "linear", ties = "rounded", na.rm=TRUE)
 
 
 ##generieren von 5 'klassen' der lohnverteilung
 #cdf speichern
-cdfs<-svycdf(~p_income, data.pd.svy.pos) #function abspreichern
+cdfs<-svycdf(~p_income, data.pd.svy) #function abspreichern
 #zb cdf an stelle 1.000 abrufen: 
 cdfs[[1]](1000)#
 cdfs[[1]](c(1000,3000)) #6 - 14 % der löhne liegen zwischen 1.000 und 3.000 euro
 
 #im design speichern
-data.pd.svy.pos<- update(data.pd.svy.pos,
+data.pd.svy <- update(data.pd.svy,
                             cdf_wages=cdfs[[1]](p_income))
 #abrufen 
-data.pd.svy.pos$variables$cdf_wages
+data.pd.svy$variables$cdf_wages
 
 #in gruppen umcodieren:
-data.pd.svy.pos<-update(data.pd.svy.pos, 
+data.pd.svy<-update(data.pd.svy, 
                            cdf_wages_100=ceiling(cdf_wages*100))
-
-
-data.pd.svy.pos<- update(data.pd.svy.pos,
+data.pd.svy$variables$cdf_wages_100
+data.pd.svy<- update(data.pd.svy,
                             income_class=cut(cdf_wages,
                                              c(0,0.5,0.9,0.99,1),
                                              labels=c('bottom 50', 'middle class', 'upper class', 'Top 1%')))
+data.pd.svy$variables$income_class
 
-#income share by group: 
-income_classes <- svyby(~p_income, ~income_class, data.pd.svy.pos, svytotal)
-total_income <- svytotal(~p_income, data.pd.svy.pos)
-income_classes[,2] / total_income[1]
 
 #one continous variable
 #add a count variable
-data.hd.svy.pos <- update(data.hd.svy.pos, count=1)
-svytotal(~count,data.hd.svy.pos )
+data.hd.svy <- update(data.hd.svy, count=1)
+svytotal(~count,data.hd.svy)
 
-cdf.wage <- svycdf(~p_income, data.pd.svy.pos)
+cdf.wage <- svycdf(~p_income, data.pd.svy)
 
-silc.hh.pos <- filter(data.temp, hh_income>0)
-cdf.wage.wowgt <- ecdf(silc.hh.pos$hh_income)
+cdf.wage.wowgt <- ecdf(data.temp$hh_income)
 plot(cdf.wage, do.points=FALSE, xlab = "Wage Income", 
      ylab = "Cdf")
 plot(cdf.wage, do.points = FALSE, xlab = 
@@ -431,16 +432,16 @@ legend("bottomright", bty = "n", fill = c("black", "red"),
        legend = c("weighted", "unweighted"))
 
 ##histogram:
-svyhist(~p_income, design = data.pd.svy.pos, 
+svyhist(~p_income, design = data.pd.svy, 
         main = "histogram Wage Income", 
         col ="gray", xlab = "Wage Income")
-svyhist(~p_income, design = subset(data.pd.svy.pos, p_income < 150000), 
+svyhist(~p_income, design = subset(data.pd.svy, p_income < 150000), 
         main = "hist wage", col = "gray", xlab = "inc wage")
-lines(svysmooth(~p_income, subset(data.pd.svy.pos, p_income < 150000)), 
+lines(svysmooth(~p_income, subset(data.pd.svy, p_income < 150000)), 
       lwd = 2)        
 
 # Boxplot
-svyboxplot(p_income~as.factor(educ), data.pd.svy.pos,
+svyboxplot(p_income~as.factor(educ), data.pd.svy,
            main = "Boxplot Wage Income",
            col = "gray", ylab = "Wage Income", xlab="Educ-Groups")
 
